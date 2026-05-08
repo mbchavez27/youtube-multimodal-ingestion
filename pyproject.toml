@@ -1,0 +1,10 @@
+[project]
+name = "youtube-multimodal-ingestion"
+version = "0.1.0"
+description = "Unified YouTube multimodal data ingestion pipeline"
+requires-python = ">=3.10"
+dependencies = [
+    "yt-dlp>=2024.10.7",
+    "faster-whisper>=1.1.0",
+    "tqdm>=4.66.0",
+]

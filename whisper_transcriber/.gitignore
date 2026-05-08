@@ -1,0 +1,6 @@
+# Local module environment
+.venv/
+
+# Temp downloads (audio)
+data/*/.tmp_audio/
+data/*/.tmp_audio/**
