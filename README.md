@@ -8,34 +8,126 @@ This project processes a YouTube video (via URL or ID) and extracts structured m
 
 ## Extracted Data
 
-### Metadata
-- Title
-- Description
-- Channel information
-- Publish date
-- Tags
-- View, like, and comment counts
+This pipeline extracts five types of structured data from YouTube videos.
 
-### Text / Transcript
-- Video transcripts (manual or auto-generated)
-- Timestamped speech segments
-- Cleaned and segmented text
+---
 
-### Audio Features
-- Speech segment timing
-- Acoustic features (e.g., pitch, energy, duration)
+### Video Metadata (`record_type: "video"`)
 
-### Visual Features
-- Scene segmentation
-- Frame-level embeddings
-- OCR-extracted text from frames
+| Field | Type | Description |
+|-------|------|-------------|
+| `video_id` | string | YouTube's unique video identifier |
+| `title` | string | Video title |
+| `description` | string | Video description text |
+| `create_time` | ISO 8601 | Publish timestamp |
+| `duration_seconds` | int | Video length in seconds |
+| `view_count` | int | Total views (may be unavailable) |
+| `like_count` | int | Like count (may be unavailable) |
+| `comment_count` | int | Comment count |
+| `hashtags` | list[string] | Extracted hashtags from description |
+| `mentions` | list[string] | @mentions from description |
+| `is_live` | bool | Whether video was a livestream |
 
-### Temporal Alignment
-- Synchronization of text, audio, and visual signals
-- Time-based event structuring
+---
 
-### Engagement Signals
-- Views, likes, and comments (when available)
+### Comments (`record_type: "comment"`)
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `comment_id` | string | Unique comment identifier |
+| `text` | string | Comment text content |
+| `user_handle` | string | YouTube handle (e.g., `@username`) |
+| `user_display_name` | string | Display name |
+| `like_count` | int | Number of likes on comment |
+| `reply_count` | int | Number of replies |
+| `create_time` | ISO 8601 | Comment timestamp |
+| `is_reply` | bool | Whether this is a reply |
+| `parent_comment_id` | string | Parent comment ID (null if top-level) |
+
+---
+
+### Transcript (`record_type: "transcript"`)
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `language` | string | Detected language code (e.g., `en`, `ko`) |
+| `text` | string | Full transcript as continuous text |
+| `segments` | list[Segment] | Timestamped speech segments |
+
+**Segment schema:**
+| Field | Type | Description |
+|-------|------|-------------|
+| `start` | float | Start time in seconds |
+| `end` | float | End time in seconds |
+| `text` | string | Spoken text for this segment |
+
+---
+
+### Audio Features (`record_type: "audio_features"`)
+
+Extracted using [librosa](https://librosa.org/). Each video is divided into 1-second segments.
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `sample_rate` | int | Audio sample rate (16000 Hz) |
+| `duration_seconds` | float | Total audio duration |
+| `segments` | list[AudioSegment] | Per-second acoustic features |
+
+**AudioSegment schema:**
+| Field | Type | Description |
+|-------|------|-------------|
+| `start` | float | Start time (seconds) |
+| `end` | float | End time (seconds) |
+| `energy_rms` | float | Root Mean Square energy — loudness/intensity of the audio frame. Range: 0 to ~0.5. Higher values indicate louder audio. |
+| `zcr` | float | Zero Crossing Rate — how often the audio signal crosses zero. Range: 0 to 1. Higher values may indicate noisier or percussive audio. |
+| `spectral_centroid_hz` | float | Spectral Centroid — "center of mass" of the spectrum in Hz. Correlates with perceived brightness/timbre. Typical speech: 1000-4000 Hz. |
+
+---
+
+### Visual Features (`record_type: "visual_features"`)
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `scenes` | list[Scene] | Detected scene boundaries |
+| `ocr_frames` | list[OCRFrame] | OCR text from key frames |
+
+**Scene schema:**
+| Field | Type | Description |
+|-------|------|-------------|
+| `scene_index` | int | Scene number (1-indexed) |
+| `start_frame` | int | First frame of scene |
+| `end_frame` | int | Last frame of scene |
+| `start_time` | float | Scene start (seconds) |
+| `end_time` | float | Scene end (seconds) |
+
+**OCRFrame schema:**
+| Field | Type | Description |
+|-------|------|-------------|
+| `timestamp` | float | Frame timestamp (seconds) |
+| `text` | string | Extracted text (max 500 chars) |
+
+> **Note:** OCR requires [Tesseract](https://github.com/tesseract-ocr/tesseract) to be installed. Without it, `text` fields return empty.
+
+---
+
+### Temporal Alignment (`record_type: "temporal_alignment"`)
+
+Synchronizes transcript, audio, and visual features at 1-second intervals.
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `total_duration` | float | Total video duration (seconds) |
+| `aligned_entries` | list[AlignEntry] | Time-synchronized records |
+
+**AlignEntry schema:**
+| Field | Type | Description |
+|-------|------|-------------|
+| `timestamp` | float | Time point (seconds) |
+| `transcript_text` | string | Spoken text at this timestamp (if any) |
+| `audio_energy` | float | RMS energy at this timestamp |
+| `scene_index` | int | Active scene number (if any) |
+
+---
 
 ### Implementation Status
 
