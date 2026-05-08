@@ -1,14 +1,52 @@
 # YouTube Multimodal Ingestion Pipeline
 
-Unified YouTube data ingestion tool that extracts metadata, comments, and transcriptions from videos.
+Multimodal YouTube data ingestion pipeline for building structured datasets from video content.
 
-## What It Extracts
+## Overview
 
-| Data Type | Description |
-|-----------|-------------|
-| **Metadata** | Title, description, channel, publish date, tags, views, likes, duration |
-| **Comments** | Text, author, like count, timestamps, replies |
-| **Transcript** | Full text + timestamped segments via Whisper |
+This project processes a YouTube video (via URL or ID) and extracts structured multimodal data for dataset creation. It focuses on transforming raw video content into analyzable representations without storing raw media.
+
+## Extracted Data
+
+### Metadata
+- Title
+- Description
+- Channel information
+- Publish date
+- Tags
+- View, like, and comment counts
+
+### Text / Transcript
+- Video transcripts (manual or auto-generated)
+- Timestamped speech segments
+- Cleaned and segmented text
+
+### Audio Features
+- Speech segment timing
+- Acoustic features (e.g., pitch, energy, duration)
+
+### Visual Features
+- Scene segmentation
+- Frame-level embeddings
+- OCR-extracted text from frames
+
+### Temporal Alignment
+- Synchronization of text, audio, and visual signals
+- Time-based event structuring
+
+### Engagement Signals
+- Views, likes, and comments (when available)
+
+### Implementation Status
+
+| Feature | Status |
+|---------|--------|
+| Metadata | ✅ Implemented |
+| Comments | ✅ Implemented |
+| Transcript | ✅ Implemented |
+| Audio Features (pitch, energy, duration) | 🔜 Not yet |
+| Visual Features (scene segmentation, embeddings, OCR) | 🔜 Not yet |
+| Temporal Alignment (text/audio/visual sync) | 🔜 Not yet |
 
 ## Installation
 
@@ -95,9 +133,9 @@ Example output file:
 
 ## Key Principle
 
-- No raw video files are stored
-- Only structured, derived data (JSONL, .txt, .vtt) is output
-- Temp audio is deleted after transcription (unless `--keep-audio` is set)
+- No raw video or audio files are stored
+- Only structured, derived multimodal representations are generated
+- Temp audio is deleted after transcription (unless Keep audio is selected)
 
 ## Legal Note
 
