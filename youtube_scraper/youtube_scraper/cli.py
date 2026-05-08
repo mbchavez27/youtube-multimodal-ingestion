@@ -64,8 +64,8 @@ def parse_args(argv: list[str]) -> RunConfig:
 
     manual_csv = str(args.manual_csv)
     person = Path(manual_csv).stem
-    default_output = f"data/{person}/{person}_youtube.jsonl"
-    default_comments = f"data/{person}/comments"
+    default_output = f"outputs/{person}/{person}_youtube.jsonl"
+    default_comments = f"outputs/{person}/comments"
     output_path = _resolve_under_root(str(args.out) if args.out else default_output)
     comments_dir = _resolve_under_root(
         str(args.comments_dir) if args.comments_dir else default_comments

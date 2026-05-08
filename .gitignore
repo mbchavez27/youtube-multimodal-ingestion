@@ -216,3 +216,9 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+# Output files
+outputs/
+
+# Temp audio
+.tmp_audio_*

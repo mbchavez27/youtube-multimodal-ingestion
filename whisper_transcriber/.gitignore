@@ -2,5 +2,5 @@
 .venv/
 
 # Temp downloads (audio)
-data/*/.tmp_audio/
-data/*/.tmp_audio/**
+outputs/*/.tmp_audio/
+outputs/*/.tmp_audio/**

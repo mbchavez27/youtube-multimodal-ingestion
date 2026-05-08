@@ -123,11 +123,11 @@ def parse_args() -> Config:
     print(f"\nProcessing: {url}")
     print("━" * 50)
 
-    output_path = prompt_default("Output file", f"{video_id}.jsonl")
+    output_path = prompt_default("Output file", f"outputs/{video_id}.jsonl")
     if output_path == "-":
         output_path = None
     elif not output_path.endswith(".jsonl"):
-        output_path = f"{output_path}.jsonl"
+        output_path = f"outputs/{output_path}.jsonl"
 
     try:
         max_comments = int(prompt_default("Max comments to fetch (0 = unlimited)", "1000"))
@@ -558,7 +558,7 @@ def align_temporal_features(
 
 
 def export_transcript_files(transcript: TranscriptItem, video_id: str, lang: str) -> None:
-    base_path = Path(f"data/{video_id}")
+    base_path = Path(f"outputs/transcripts/{video_id}")
     base_path.mkdir(parents=True, exist_ok=True)
 
     vtt_path = base_path / f"{video_id}.{lang}.vtt"

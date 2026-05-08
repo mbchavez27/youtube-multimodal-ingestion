@@ -75,12 +75,12 @@ def parse_args(argv: list[str]) -> RunConfig:
     parser.add_argument(
         "--out-dir",
         default=None,
-        help="Transcript output dir (default data/<person>/transcripts)",
+        help="Transcript output dir (default outputs/<person>/transcripts)",
     )
     parser.add_argument(
         "--tmp-dir",
         default=None,
-        help="Temp audio dir (default data/<person>/.tmp_audio)",
+        help="Temp audio dir (default outputs/<person>/.tmp_audio)",
     )
     parser.add_argument("--lang", default="ko", help="Preferred subtitle language")
     parser.add_argument("--model", default="small", help="Whisper model size")
@@ -122,10 +122,10 @@ def parse_args(argv: list[str]) -> RunConfig:
     manual_csv = str(args.manual_csv)
     person = Path(manual_csv).stem
     out_dir = _resolve_under_root(
-        str(args.out_dir) if args.out_dir else f"data/{person}/transcripts"
+        str(args.out_dir) if args.out_dir else f"outputs/{person}/transcripts"
     )
     tmp_dir = _resolve_under_root(
-        str(args.tmp_dir) if args.tmp_dir else f"data/{person}/.tmp_audio"
+        str(args.tmp_dir) if args.tmp_dir else f"outputs/{person}/.tmp_audio"
     )
     yt_dlp_path = args.yt_dlp_path or _find_yt_dlp()
 
