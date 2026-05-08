@@ -1,12 +1,15 @@
 from __future__ import annotations
 
 import json
+import logging
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
 from ..models import CommentItem
 from .yt_dlp_client import YtDlpClient
+
+LOGGER = logging.getLogger("youtube_scraper.comments")
 
 
 class CommentScraper:
@@ -27,6 +30,7 @@ class CommentScraper:
         output_basename: str | None = None,
         output_dir: str,
     ) -> list[CommentItem]:
+        LOGGER.info("Scraping comments for video_id=%s url=%s", video_id, video_url)
         comments_file = self.client.dump_comments(
             video_url,
             output_dir=output_dir,
@@ -34,7 +38,9 @@ class CommentScraper:
             video_id=video_id,
         )
         if not comments_file:
+            LOGGER.warning("No comments file created for video_id=%s", video_id)
             return []
+        LOGGER.debug("Comments file found: %s", comments_file)
         return _parse_comments_file(
             comments_file,
             channel_id=channel_id,
@@ -55,9 +61,32 @@ def _parse_comments_file(
     anchor_id: str | None,
 ) -> list[CommentItem]:
     raw = _read_json_payload(path)
-    comments = raw.get("comments") if isinstance(raw, dict) else None
-    if not isinstance(comments, list):
+    LOGGER.debug("Parsing comments file: %s, type=%s", path.name, type(raw).__name__)
+
+    if isinstance(raw, list):
+        comments = raw
+        LOGGER.debug("Detected list format (extracted from info.json)")
+    elif isinstance(raw, dict):
+        comments = raw.get("comments")
+        if isinstance(comments, list):
+            LOGGER.debug("Detected dict format with 'comments' key")
+        else:
+            top_keys = list(raw.keys())
+            LOGGER.warning("Comments not a list. Top-level keys: %s", top_keys)
+            if "comments" not in raw:
+                LOGGER.warning("'comments' key not found in JSON. Available keys: %s", top_keys)
+            elif not isinstance(comments, list):
+                LOGGER.warning("'comments' exists but is type %s, not list", type(comments))
+            return []
+    else:
+        LOGGER.warning("Raw JSON is not a dict or list, type: %s", type(raw))
         return []
+
+    if not isinstance(comments, list):
+        LOGGER.warning("Comments is not a list, type: %s", type(comments))
+        return []
+
+    LOGGER.info("Found %d comments in file (max: %d)", len(comments), max_comments)
     out: list[CommentItem] = []
     for entry in comments:
         if not isinstance(entry, dict):

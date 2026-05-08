@@ -51,6 +51,7 @@ class Config:
     compute_type: str
     keep_audio: bool
     export_transcript_files: bool
+    verbose: bool
 
 
 def normalize_url(url: str) -> str:
@@ -87,11 +88,15 @@ def prompt_yes_no(prompt: str, default: bool = False) -> bool:
     return user_input in ("y", "yes")
 
 
-def setup_logging() -> None:
+def setup_logging(verbose: bool = False) -> None:
+    level = logging.DEBUG if verbose else logging.INFO
     logging.basicConfig(
-        level=logging.INFO,
+        level=level,
         format="%(asctime)s %(levelname)s %(message)s",
     )
+    if verbose:
+        logging.getLogger("youtube_scraper").setLevel(logging.DEBUG)
+        logging.getLogger("youtube_scraper.comments").setLevel(logging.DEBUG)
 
 
 def get_video_info(url: str) -> dict | None:
@@ -141,6 +146,7 @@ def parse_args() -> Config:
 
     keep_audio = prompt_yes_no("Keep temp audio (debug)?", False)
     export_transcript_files = prompt_yes_no("Export .vtt/.txt files?", False)
+    verbose = prompt_yes_no("Verbose logging (debug)?", False)
 
     print("━" * 50 + "\n")
 
@@ -159,6 +165,7 @@ def parse_args() -> Config:
         compute_type="int8",
         keep_audio=keep_audio,
         export_transcript_files=export_transcript_files,
+        verbose=verbose,
     )
 
 
@@ -656,7 +663,7 @@ def write_output(
 
 
 def run(config: Config) -> int:
-    setup_logging()
+    setup_logging(verbose=config.verbose)
 
     video = scrape_video(config)
     if not video:
