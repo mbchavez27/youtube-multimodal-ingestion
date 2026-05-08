@@ -39,14 +39,15 @@ This project processes a YouTube video (via URL or ID) and extracts structured m
 
 ### Implementation Status
 
-| Feature | Status |
-|---------|--------|
-| Metadata | ✅ Implemented |
-| Comments | ✅ Implemented |
-| Transcript | ✅ Implemented |
-| Audio Features (pitch, energy, duration) | 🔜 Not yet |
-| Visual Features (scene segmentation, embeddings, OCR) | 🔜 Not yet |
-| Temporal Alignment (text/audio/visual sync) | 🔜 Not yet |
+| Feature | Status | Notes |
+|---------|--------|-------|
+| Metadata | ✅ Works | Out of box |
+| Comments | ✅ Works | Out of box |
+| Transcript | ✅ Works | Out of box |
+| Audio Features (energy, ZCR, centroid) | ✅ Works | Out of box |
+| Visual Features (scene detection) | ✅ Works | Out of box |
+| Visual Features (OCR) | ⚠️ Partial | Works without Tesseract (returns empty) |
+| Temporal Alignment | ✅ Works | Syncs transcript, audio, visual by time |
 
 ## Installation
 
@@ -119,6 +120,9 @@ Example output file:
 | Max comments | 1000 | Comments to fetch (0 = unlimited) |
 | Skip comments | No | Skip comment scraping |
 | Skip transcript | No | Skip transcription |
+| Extract audio features | No | Extract energy, ZCR, spectral centroid |
+| Extract visual features | No | Extract scenes + OCR (needs Tesseract) |
+| Align multimodal features | No | Sync transcript, audio, visual by time |
 | Language | auto | Transcript language (auto-detects) |
 | Model | small | Whisper model: small, medium, large-v3 |
 | Device | auto | Compute: auto, cpu, cuda |
@@ -127,9 +131,16 @@ Example output file:
 
 ## Requirements
 
-- **yt-dlp** — for video metadata and comments (installed via uv)
-- **faster-whisper** — for local transcription (installed via uv)
-- **ffmpeg** — system dependency for audio extraction
+### Python packages (auto-installed via `uv sync`)
+- yt-dlp — video metadata and comments
+- faster-whisper — transcription
+- librosa — audio feature extraction
+- scenedetect — scene detection
+- pytesseract — OCR (works without Tesseract, returns empty text)
+
+### System dependencies (must install separately)
+- **ffmpeg** — required for audio/video extraction
+- **Tesseract** — optional, for OCR text extraction
 
 ## Key Principle
 
