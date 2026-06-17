@@ -29,6 +29,7 @@ class CommentScraper:
         anchor_id: str | None = None,
         output_basename: str | None = None,
         output_dir: str,
+        extractor_args: list[str] | None = None,
     ) -> list[CommentItem]:
         LOGGER.info("Scraping comments for video_id=%s url=%s", video_id, video_url)
         comments_file = self.client.dump_comments(
@@ -36,6 +37,7 @@ class CommentScraper:
             output_dir=output_dir,
             output_basename=output_basename,
             video_id=video_id,
+            extractor_args=extractor_args,
         )
         if not comments_file:
             LOGGER.warning("No comments file created for video_id=%s", video_id)

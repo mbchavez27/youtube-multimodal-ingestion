@@ -54,6 +54,7 @@ class YtDlpClient:
         output_dir: str,
         output_basename: str | None = None,
         video_id: str | None = None,
+        extractor_args: list[str] | None = None,
     ) -> Path | None:
         LOGGER.info("yt-dlp comments start url=%s", url)
         out_dir = Path(output_dir)
@@ -61,13 +62,13 @@ class YtDlpClient:
         output_template = out_dir / "%(id)s.%(ext)s"
 
         comments_file = self._dump_comments_primary(
-            url, out_dir, output_template, video_id
+            url, out_dir, output_template, video_id, extractor_args=extractor_args
         )
 
         if not comments_file:
             LOGGER.info("Primary method failed, trying fallback methods...")
             comments_file = self._dump_comments_fallback(
-                url, out_dir, output_template, video_id
+                url, out_dir, output_template, video_id, extractor_args=extractor_args
             )
 
         if output_basename and comments_file:
@@ -90,6 +91,7 @@ class YtDlpClient:
         out_dir: Path,
         output_template: Path,
         video_id: str | None,
+        extractor_args: list[str] | None = None,
     ) -> Path | None:
         args = [
             "yt-dlp",
@@ -98,8 +100,10 @@ class YtDlpClient:
             "--no-playlist",
             "-o",
             str(output_template),
-            url,
         ]
+        if extractor_args:
+            args.extend(extractor_args)
+        args.append(url)
         if self.cache_dir:
             args.extend(["--cache-dir", self.cache_dir])
         return self._run_and_find_comments(args, out_dir, video_id)
@@ -110,13 +114,21 @@ class YtDlpClient:
         out_dir: Path,
         output_template: Path,
         video_id: str | None,
+        extractor_args: list[str] | None = None,
     ) -> Path | None:
+        base = ["yt-dlp", "--write-comments", "--skip-download", "--no-playlist", "-o", str(output_template)]
         methods = [
-            ["yt-dlp", "--write-comments", "--skip-download", "--no-playlist", "-o", str(output_template), url],
+            [*base, url],
             ["yt-dlp", "--extractor-args", "youtube:commenter=default", "--write-comments", "--skip-download", "--no-playlist", "-o", str(output_template), url],
             ["yt-dlp", "--extractor-args", "youtube:commenter=legs", "--write-comments", "--skip-download", "--no-playlist", "-o", str(output_template), url],
             ["yt-dlp", "--extractor-args", "youtube:comments:thread=replies", "--write-comments", "--skip-download", "--no-playlist", "-o", str(output_template), url],
         ]
+        # Prepend extractor_args to each fallback method if provided
+        if extractor_args:
+            for i in range(len(methods)):
+                # Insert after yt-dlp binary but before any flags
+                insert_pos = 1
+                methods[i] = [*methods[i][:insert_pos], *extractor_args, *methods[i][insert_pos:]]
         for i, args in enumerate(methods[1:], start=2):
             if self.cache_dir:
                 args.extend(["--cache-dir", self.cache_dir])
